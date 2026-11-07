@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="it" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -10,20 +10,49 @@
     <meta name="apple-mobile-web-app-title" content="Gym Tracker">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: ['selector', '[data-theme="dark"]']
+        }
+    </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Tema Suro / Scuro */
+        [data-theme="dark"] body {
             background-color: #0b0f19;
             color: #f3f4f6;
-            -webkit-tap-highlight-color: transparent;
         }
-        .glass-card {
+        [data-theme="dark"] .glass-card {
             background: rgba(17, 24, 39, 0.75);
-            backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
-        /* Nascondi la barra di scorrimento ma mantieni la funzionalità */
+        [data-theme="dark"] .nav-sticky {
+            background: rgba(11, 15, 25, 0.9);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Tema Chiaro / Light */
+        [data-theme="light"] body {
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        [data-theme="light"] .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        [data-theme="light"] .nav-sticky {
+            background: rgba(248, 250, 252, 0.9);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -36,7 +65,7 @@
 <body class="min-h-screen pb-32">
 
     <!-- Header -->
-    <header class="sticky top-0 z-40 glass-card border-b border-gray-800 px-4 py-3.5 flex items-center justify-between">
+    <header class="sticky top-0 z-40 glass-card backdrop-blur-md px-4 py-3.5 flex items-center justify-between">
         <div class="flex items-center space-x-3">
             <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
                 <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -44,17 +73,23 @@
                 </svg>
             </div>
             <div>
-                <h1 class="text-lg font-bold tracking-tight text-white">Gym Tracker</h1>
-                <p class="text-xs text-gray-400">Scheda Allenamento 4 Giorni</p>
+                <h1 class="text-lg font-bold tracking-tight">Gym Tracker</h1>
+                <p class="text-xs opacity-70">Scheda 4 Giorni</p>
             </div>
         </div>
-        <button onclick="resetAllData()" class="px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-semibold border border-gray-700 transition">
-            🔄 Reset
-        </button>
+        <div class="flex items-center space-x-2">
+            <!-- Pulsante Cambio Tema -->
+            <button onclick="toggleTheme()" id="theme-btn" class="p-2.5 rounded-xl glass-card text-sm font-semibold transition hover:scale-105 active:scale-95" title="Cambia Tema">
+                🌙
+            </button>
+            <button onclick="resetAllData()" class="px-3 py-2 rounded-xl glass-card text-xs font-semibold transition hover:opacity-80">
+                🔄 Reset
+            </button>
+        </div>
     </header>
 
     <!-- Navigation Days Tabs -->
-    <nav class="sticky top-[65px] z-30 bg-[#0b0f19]/90 backdrop-blur-md px-4 py-3 border-b border-gray-800/60">
+    <nav class="sticky top-[65px] z-30 nav-sticky backdrop-blur-md px-4 py-3">
         <div class="flex space-x-2 overflow-x-auto no-scrollbar" id="days-tabs">
             <!-- Generato via JS -->
         </div>
@@ -66,32 +101,32 @@
     </main>
 
     <!-- Floating Timer Dock -->
-    <div id="timer-dock" class="fixed bottom-4 left-4 right-4 max-w-xl mx-auto glass-card rounded-2xl p-4 shadow-2xl border border-blue-500/30 transition-all duration-300 translate-y-32 opacity-0 z-50">
+    <div id="timer-dock" class="fixed bottom-4 left-4 right-4 max-w-xl mx-auto glass-card rounded-2xl p-4 shadow-2xl transition-all duration-300 translate-y-32 opacity-0 z-50">
         <div class="flex items-center justify-between mb-2">
             <div class="flex items-center space-x-2">
                 <span class="w-2.5 h-2.5 rounded-full bg-blue-500 animate-ping"></span>
-                <span class="text-xs font-bold uppercase tracking-wider text-blue-400">Recupero in corso</span>
+                <span class="text-xs font-bold uppercase tracking-wider text-blue-500">Recupero in corso</span>
             </div>
-            <span id="timer-display" class="text-2xl font-black text-white font-mono">00:00</span>
+            <span id="timer-display" class="text-2xl font-black font-mono">00:00</span>
         </div>
-        <div class="text-xs text-gray-300 truncate mb-3" id="timer-exercise-name">Esercizio</div>
-        <div class="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden mb-3">
+        <div class="text-xs opacity-80 truncate mb-3" id="timer-exercise-name">Esercizio</div>
+        <div class="w-full bg-gray-700/30 h-1.5 rounded-full overflow-hidden mb-3">
             <div id="timer-progress" class="bg-blue-500 h-full w-full transition-all duration-1000"></div>
         </div>
         <div class="flex items-center space-x-2">
-            <button onclick="addTimerSeconds(10)" class="flex-1 py-2 bg-gray-800 hover:bg-gray-700 rounded-xl text-xs font-bold text-gray-200 border border-gray-700 transition">+10s</button>
-            <button onclick="stopTimer()" class="flex-1 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-xl text-xs font-bold border border-red-500/30 transition">Ferma</button>
+            <button onclick="addTimerSeconds(10)" class="flex-1 py-2 glass-card rounded-xl text-xs font-bold transition">+10s</button>
+            <button onclick="stopTimer()" class="flex-1 py-2 bg-red-500/20 text-red-500 rounded-xl text-xs font-bold border border-red-500/30 transition">Ferma</button>
         </div>
     </div>
 
     <!-- Celebration Modal -->
-    <div id="victory-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
-        <div class="glass-card max-w-sm w-full rounded-3xl p-6 text-center border border-emerald-500/40 shadow-2xl shadow-emerald-500/10 transform scale-95 transition-transform duration-300" id="victory-card">
+    <div id="victory-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+        <div class="glass-card max-w-sm w-full rounded-3xl p-6 text-center shadow-2xl transform scale-95 transition-transform duration-300" id="victory-card">
             <div class="w-16 h-16 bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl">
                 🏆
             </div>
-            <h2 class="text-xl font-black text-white mb-1">Ciclo Completato!</h2>
-            <p class="text-xs text-gray-300 mb-6">Hai completato tutti e 4 i giorni di allenamento con successo. La scheda è stata resettata per un nuovo ciclo.</p>
+            <h2 class="text-xl font-black mb-1">Ciclo Completato!</h2>
+            <p class="text-xs opacity-70 mb-6">Hai completato tutti e 4 i giorni di allenamento. La scheda è stata resettata per un nuovo ciclo.</p>
             <button onclick="closeVictoryModal()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-sm shadow-lg shadow-emerald-600/30 transition">
                 Ottimo, si ricomincia!
             </button>
@@ -105,14 +140,14 @@
                 title: "1° Giorno",
                 subtitle: "Petto, Gambe & Bicipiti",
                 exercises: [
-                    { id: "d1_e1", name: "Panca piana bilanciere impugnatura larga", note: "rest pause set - rpe 5/6", sets: 3, reps: "10 + 8 dopo 20 sec", rest: 120 },
-                    { id: "d1_e2", name: "Croci su panca inclinata 30°", note: "TUT: 3sE-2sI-1sC", sets: 4, reps: "6/8 rep", rest: 60 },
-                    { id: "d1_e3", name: "Distensione manubri su panca inclinata 45°", note: "3+1 drop", sets: 4, reps: "12 rep", rest: 60 },
-                    { id: "d1_e4", name: "Leg press singola", note: "", sets: 3, reps: "12+12 rep", rest: 90 },
-                    { id: "d1_e5", name: "Super serie: leg extension + kb squat al parallelo", note: "TUT: 3sE-2sI-1sC", sets: 4, reps: "6/8 rep", rest: 60 },
-                    { id: "d1_e6", name: "Affondi in camminata", note: "3+1 drop", sets: 4, reps: "12 rep", rest: 60 },
-                    { id: "d1_e7", name: "Curl con bilanciere EZ", note: "rest pause set - rpe 5/6", sets: 3, reps: "10 + 8 dopo 20 secondi", rest: 120 },
-                    { id: "d1_e8", name: "Curl ai cavi con corda", note: "2+2 drop", sets: 3, reps: "10 rep", rest: 120 }
+                    { id: "d1_e1", name: "panca piana bilanciere impugnatura larga", note: "rest pause set - rpe 5/6", sets: 3, reps: "10 + 8 dopo 20 sec", rest: 120 },
+                    { id: "d1_e2", name: "croci su panca inclinata 30°", note: "time under tension (TUT: 3sE-2sI-1sC)", sets: 4, reps: "6/8 rep", rest: 60 },
+                    { id: "d1_e3", name: "distesione manubri su panca inclinata 45°", note: "3+1 drop", sets: 3, reps: "12", rest: 60 },
+                    { id: "d1_e4", name: "leg press singola", note: "", sets: 3, reps: "12+12", rest: 90 },
+                    { id: "d1_e5", name: "super serie: leg extension + kb squat al parallelo", note: "TUT: 3sE-2sI-1sC", sets: 4, reps: "6/8 rep", rest: 60 },
+                    { id: "d1_e6", name: "affondi in camminata", note: "3+1 drop", sets: 3, reps: "12", rest: 60 },
+                    { id: "d1_e7", name: "curi con bilanciere EZ", note: "rest pause set - rpe 5/6", sets: 3, reps: "10 + 8 dopo 20 secondi", rest: 120 },
+                    { id: "d1_e8", name: "curi ai cavi con corda", note: "2+2 drop", sets: 2, reps: "10", rest: 120 }
                 ]
             },
             {
@@ -121,13 +156,13 @@
                 subtitle: "Dorso, Spalle & Tricipiti",
                 exercises: [
                     { id: "d2_e1", name: "Lat machine avanti passo largo", note: "rest pause set - rpe 5/6", sets: 3, reps: "10 + 8 dopo 20 sec", rest: 120 },
-                    { id: "d2_e2", name: "Rematore con petto su panca inclinata 30°", note: "TUT: 1sC-2sI-3sE", sets: 4, reps: "6/8 rep", rest: 60 },
-                    { id: "d2_e3", name: "Pull down al cavo alto con barra dritta", note: "3+1 drop", sets: 4, reps: "12 rep", rest: 60 },
-                    { id: "d2_e4", name: "Lento avanti manubrio singolo", note: "", sets: 3, reps: "12+12 rep", rest: 90 },
-                    { id: "d2_e5", name: "Super serie: alzate laterali manubri + croci cavi incrociati", note: "TUT: 1sC-2sI-3sE", sets: 4, reps: "6/8 rep", rest: 60 },
-                    { id: "d2_e6", name: "Croci ai cavi dal basso", note: "3+1 drop", sets: 4, reps: "12 rep", rest: 60 },
-                    { id: "d2_e7", name: "French press bilanciere EZ", note: "rest pause set - rpe 5/6", sets: 3, reps: "10 + 8 dopo 20 secondi", rest: 120 },
-                    { id: "d2_e8", name: "Push down ai cavi con la corda", note: "2+2 drop", sets: 3, reps: "10 rep", rest: 120 }
+                    { id: "d2_e2", name: "rematore con petto su panca inclinata 30°", note: "TUT: 1sC-2sI-3sE", sets: 4, reps: "6/8 rep", rest: 60 },
+                    { id: "d2_e3", name: "pull down al cavo alto con barra dritta", note: "3+1 drop", sets: 3, reps: "12", rest: 60 },
+                    { id: "d2_e4", name: "lento avanti manubrio singolo", note: "", sets: 3, reps: "12+12", rest: 90 },
+                    { id: "d2_e5", name: "super serie: alzate laterali manubri + croci cavi incrociati", note: "TUT: 1sC-2sI-3sE", sets: 4, reps: "6/8 rep", rest: 60 },
+                    { id: "d2_e6", name: "croci ai cavi dal basso", note: "3+1 drop", sets: 3, reps: "12", rest: 60 },
+                    { id: "d2_e7", name: "french press bilanciere EZ", note: "rest pause set - rpe 5/6", sets: 3, reps: "10 + 8 dopo 20 secondi", rest: 120 },
+                    { id: "d2_e8", name: "push down ai cavi con la corda", note: "2+2 drop", sets: 2, reps: "10", rest: 120 }
                 ]
             },
             {
@@ -135,14 +170,14 @@
                 title: "3° Giorno",
                 subtitle: "Petto, Gambe & Bicipiti Focus",
                 exercises: [
-                    { id: "d3_e1", name: "Dip alle parallele", note: "rest pause set - rpe 5/6", sets: 3, reps: "8/10 + 6/8 dopo 20 sec", rest: 120 },
-                    { id: "d3_e2", name: "Push up time under tension", note: "TUT: 3sE-2sI-3sC", sets: 4, reps: "6/8 rep", rest: 60 },
-                    { id: "d3_e3", name: "Croci ai cavi altezza spalle", note: "3+1 drop", sets: 4, reps: "12 rep", rest: 60 },
-                    { id: "d3_e4", name: "Leg press singola", note: "", sets: 3, reps: "12+12 rep", rest: 90 },
-                    { id: "d3_e5", name: "S.s: stacchi rumeni con manubri + calf polpacci alla pressa", note: "TUT: 3sE-2sI-1sC", sets: 4, reps: "6/8 rep + 8/10 rep", rest: 60 },
-                    { id: "d3_e6", name: "Leg curl", note: "3+1 drop", sets: 4, reps: "12 rep", rest: 60 },
-                    { id: "d3_e7", name: "Curl bicipiti al trx", note: "", sets: 3, reps: "10 + 8 dopo 20 secondi", rest: 120 },
-                    { id: "d3_e8", name: "Curl manubrio supinato su panca 60 gradi", note: "2+2 drop", sets: 3, reps: "10 rep", rest: 120 }
+                    { id: "d3_e1", name: "dip alle paraliele", note: "rest pause set - rpe 5/6", sets: 3, reps: "8/10 + 6/8 dopo 20 sec", rest: 120 },
+                    { id: "d3_e2", name: "push up time under tension", note: "TUT: 3sE-2sI-3sC", sets: 4, reps: "6/8 rep", rest: 60 },
+                    { id: "d3_e3", name: "croci ai cavi altezza spelle", note: "3+1 drop", sets: 3, reps: "12", rest: 60 },
+                    { id: "d3_e4", name: "leg press singola", note: "", sets: 3, reps: "12+12", rest: 90 },
+                    { id: "d3_e5", name: "s.s: stacchi rumeni con manubri + calf polpacci alla pressa", note: "TUT: 3sE-2sI-1sC", sets: 4, reps: "6/8 rep + 8/10 rep", rest: 60 },
+                    { id: "d3_e6", name: "leg curl", note: "3+1 drop", sets: 3, reps: "12", rest: 60 },
+                    { id: "d3_e7", name: "curl bicipiti al trx", note: "", sets: 3, reps: "10 + 8 dopo 20 secondi", rest: 120 },
+                    { id: "d3_e8", name: "curl manubrio supinato su panca 60 gradi", note: "2+2 drop", sets: 2, reps: "10", rest: 120 }
                 ]
             },
             {
@@ -150,28 +185,41 @@
                 title: "4° Giorno",
                 subtitle: "Dorso, Spalle & Tricipiti Focus",
                 exercises: [
-                    { id: "d4_e1", name: "Trazioni prone alla sbarra", note: "", sets: 3, reps: "6/8 + 4/6 dopo 20 sec", rest: 120 },
-                    { id: "d4_e2", name: "Chin up", note: "TUT: 3sE-2sI-3sC", sets: 4, reps: "3/5 rep", rest: 60 },
-                    { id: "d4_e3", name: "Lat pulley", note: "3+1 drop", sets: 4, reps: "12 rep", rest: 60 },
-                    { id: "d4_e4", name: "Alzate laterali con manubrio sul fianco su panca a 60°", note: "", sets: 3, reps: "12+12 rep", rest: 90 },
-                    { id: "d4_e5", name: "Australian pull up + aperture posteriori su panca 30°", note: "TUT: 1sC-2sI-3sE", sets: 4, reps: "3/4 rep + 6/8 rep", rest: 60 },
-                    { id: "d4_e6", name: "Push press manubri", note: "3+1 drop", sets: 4, reps: "12 rep", rest: 60 },
-                    { id: "d4_e7", name: "French press al trx", note: "rpe 5/6", sets: 3, reps: "10 + 8 dopo 20 secondi", rest: 120 },
-                    { id: "d4_e8", name: "Push down ai cavi con barra dritta presa supina", note: "2+2 drop", sets: 3, reps: "10 rep", rest: 120 }
+                    { id: "d4_e1", name: "trazioni prone alla sbarra", note: "", sets: 3, reps: "6/8 + 4/6 dopo 20 sec", rest: 120 },
+                    { id: "d4_e2", name: "chin up", note: "TUT: 3sE-2sI-3sC", sets: 4, reps: "3/5rep", rest: 60 },
+                    { id: "d4_e3", name: "lat pulley", note: "3+1 drop", sets: 3, reps: "12", rest: 60 },
+                    { id: "d4_e4", name: "alzate laterall con manubrio sul fianco su panca a 60°", note: "", sets: 3, reps: "12+12", rest: 90 },
+                    { id: "d4_e5", name: "australian pull up + aperture posteriori su panca 30°", note: "TUT: 1sC-2sI-3sE", sets: 4, reps: "3/4 rep + 6/8 rep", rest: 60 },
+                    { id: "d4_e6", name: "push press manubri", note: "3+1 drop", sets: 3, reps: "12", rest: 60 },
+                    { id: "d4_e7", name: "french press al trx", note: "rpe 5/6", sets: 3, reps: "10 + 8 dopo 20 secondi", rest: 120 },
+                    { id: "d4_e8", name: "push down ai cavi con barra dritta presa supina", note: "2+2 drop", sets: 2, reps: "10", rest: 120 }
                 ]
             }
         ];
 
         let currentDay = 1;
         let userProgress = JSON.parse(localStorage.getItem('gym_tracker_progress')) || {};
+        let currentTheme = localStorage.getItem('gym_tracker_theme') || 'dark';
 
         let timerInterval = null;
         let timerSecondsRemaining = 0;
         let timerTotalSeconds = 0;
 
         function initApp() {
+            setTheme(currentTheme);
             renderTabs();
             renderWorkout();
+        }
+
+        function setTheme(theme) {
+            currentTheme = theme;
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('gym_tracker_theme', theme);
+            document.getElementById('theme-btn').innerText = theme === 'dark' ? '🌙' : '☀️';
+        }
+
+        function toggleTheme() {
+            setTheme(currentTheme === 'dark' ? 'light' : 'dark');
         }
 
         function renderTabs() {
@@ -187,7 +235,7 @@
                 btn.className = `flex-shrink-0 px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex flex-col items-center border ${
                     isSelected 
                         ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-600/30' 
-                        : 'glass-card border-gray-800 text-gray-400 hover:text-white hover:border-gray-700'
+                        : 'glass-card opacity-70 hover:opacity-100'
                 }`;
                 btn.innerHTML = `
                     <span>${d.title}</span>
@@ -230,12 +278,12 @@
             const progressPercent = Math.round((completedSets / totalSets) * 100);
 
             let html = `
-                <div class="glass-card rounded-2xl p-4 border border-gray-800/80 mb-4 shadow-lg">
+                <div class="glass-card rounded-2xl p-4 mb-4 shadow-md">
                     <div class="flex justify-between items-center mb-2">
-                        <h2 class="text-sm font-bold text-white">${dayObj.title} - ${dayObj.subtitle}</h2>
-                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">${completedSets}/${totalSets} completati</span>
+                        <h2 class="text-sm font-bold">${dayObj.title} - ${dayObj.subtitle}</h2>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-500 border border-blue-500/20">${completedSets}/${totalSets} completati</span>
                     </div>
-                    <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
+                    <div class="w-full bg-gray-500/20 h-2 rounded-full overflow-hidden">
                         <div class="bg-blue-600 h-full transition-all duration-300" style="width: ${progressPercent}%"></div>
                     </div>
                 </div>
@@ -251,23 +299,23 @@
                 }
 
                 html += `
-                    <div class="glass-card rounded-2xl p-4 mb-3 border ${allSetsChecked ? 'border-emerald-500/40 bg-emerald-950/10' : 'border-gray-800'} transition-all">
+                    <div class="glass-card rounded-2xl p-4 mb-3 transition-all ${allSetsChecked ? 'border-emerald-500/50 bg-emerald-500/5' : ''}">
                         <div class="flex items-start justify-between mb-2">
                             <div class="space-y-0.5">
                                 <div class="flex items-center space-x-2">
-                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700">ES. ${index + 1}</span>
-                                    ${ex.note ? `<span class="text-[10px] text-blue-400 font-medium">${ex.note}</span>` : ''}
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-gray-500/10 opacity-80 border border-gray-500/20">ES. ${index + 1}</span>
+                                    ${ex.note ? `<span class="text-[10px] text-blue-500 font-medium">${ex.note}</span>` : ''}
                                 </div>
-                                <h3 class="text-sm font-bold text-white leading-snug pt-1">${ex.name}</h3>
+                                <h3 class="text-sm font-bold leading-snug pt-1 capitalize">${ex.name}</h3>
                             </div>
-                            <div class="flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-gray-800/80 text-gray-300 text-xs border border-gray-700/60 flex-shrink-0">
-                                <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <div class="flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-gray-500/10 text-xs border border-gray-500/20 flex-shrink-0">
+                                <svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 <span class="font-mono">${ex.rest}s</span>
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-between text-xs text-gray-400 mb-3 bg-gray-900/50 px-3 py-2 rounded-xl border border-gray-800">
-                            <span>🔄 Reps: <strong class="text-gray-200">${ex.reps}</strong></span>
+                        <div class="flex items-center justify-between text-xs opacity-75 mb-3 bg-gray-500/5 px-3 py-2 rounded-xl border border-gray-500/10">
+                            <span>🔄 Reps: <strong class="opacity-100">${ex.reps}</strong></span>
                             <span>${ex.sets} Serie</span>
                         </div>
 
@@ -280,11 +328,11 @@
                         <button onclick="toggleSet('${ex.id}', ${i}, ${ex.rest}, '${ex.name.replace(/'/g, "\\'")}')" 
                             class="py-3 px-2 rounded-xl border flex flex-col items-center justify-center space-y-1 transition-all ${
                                 isChecked 
-                                    ? 'bg-emerald-600/20 border-emerald-500 text-emerald-400 shadow-md shadow-emerald-500/10' 
-                                    : 'bg-gray-900/80 border-gray-800 text-gray-400 hover:border-gray-700 hover:bg-gray-800/50'
+                                    ? 'bg-emerald-600/20 border-emerald-500 text-emerald-500 shadow-md shadow-emerald-500/10' 
+                                    : 'bg-gray-500/5 border-gray-500/20 opacity-80 hover:opacity-100'
                             }">
                             <span class="text-[10px] font-bold uppercase tracking-wider">Serie ${i + 1}</span>
-                            <div class="w-5 h-5 rounded-full border ${isChecked ? 'bg-emerald-500 border-emerald-400 text-white' : 'border-gray-600'} flex items-center justify-center text-xs">
+                            <div class="w-5 h-5 rounded-full border ${isChecked ? 'bg-emerald-500 border-emerald-400 text-white' : 'border-gray-500/40'} flex items-center justify-center text-xs">
                                 ${isChecked ? '✓' : ''}
                             </div>
                         </button>
